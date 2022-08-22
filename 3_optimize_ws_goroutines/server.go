@@ -1,11 +1,12 @@
 package main
 
 import (
-	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
 	_ "net/http/pprof"
 	"syscall"
+
+	"github.com/gorilla/websocket"
 )
 
 var epoller *epoll

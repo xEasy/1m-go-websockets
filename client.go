@@ -3,12 +3,14 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/gorilla/websocket"
 	"io"
 	"log"
 	"net/url"
 	"os"
+	"syscall"
 	"time"
+
+	"github.com/gorilla/websocket"
 )
 
 var (
@@ -24,6 +26,18 @@ Example usage: ./client -ip=172.17.0.1 -conn=10
 		flag.PrintDefaults()
 	}
 	flag.Parse()
+
+	// Increase resources limitations
+	var rLimit syscall.Rlimit
+	if err := syscall.Getrlimit(syscall.RLIMIT_NOFILE, &rLimit); err != nil {
+		panic(err)
+	}
+	fmt.Println("rlimit: ", rLimit)
+
+	rLimit.Cur = uint64(*connections) + 20
+	if err := syscall.Setrlimit(syscall.RLIMIT_NOFILE, &rLimit); err != nil {
+		panic(err)
+	}
 
 	u := url.URL{Scheme: "ws", Host: *ip + ":8000", Path: "/"}
 	log.Printf("Connecting to %s", u.String())

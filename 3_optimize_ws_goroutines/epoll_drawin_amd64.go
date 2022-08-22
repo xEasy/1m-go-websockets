@@ -1,12 +1,13 @@
 package main
 
 import (
-	"github.com/gorilla/websocket"
-	"golang.org/x/sys/unix"
 	"log"
 	"reflect"
 	"sync"
 	"syscall"
+
+	"github.com/gorilla/websocket"
+	"golang.org/x/sys/unix"
 )
 
 type epoll struct {
@@ -16,7 +17,7 @@ type epoll struct {
 }
 
 func MkEpoll() (*epoll, error) {
-	fd, err := unix.EpollCreate1(0)
+	fd, err := unix.Kqueue()
 	if err != nil {
 		return nil, err
 	}
@@ -29,13 +30,28 @@ func MkEpoll() (*epoll, error) {
 
 func (e *epoll) Add(conn *websocket.Conn) error {
 	fd := websocketFD(conn)
-	err := unix.EpollCtl(e.fd, syscall.EPOLL_CTL_ADD, fd, &unix.EpollEvent{Events: unix.POLLIN | unix.POLLHUP, Fd: int32(fd)})
-	if err != nil {
+
+	changeEvent := unix.Kevent_t{
+		Ident:  uint64(fd),
+		Filter: syscall.EVFILT_READ,
+		Flags:  syscall.EV_ADD | syscall.EV_ENABLE,
+		Fflags: 0,
+		Data:   0,
+		Udata:  nil,
+	}
+	changeEventRegistered, err := unix.Kevent(
+		e.fd,
+		[]unix.Kevent_t{changeEvent},
+		nil,
+		nil,
+	)
+	if err != nil || changeEventRegistered == -1 {
 		return err
 	}
 	e.lock.Lock()
 	defer e.lock.Unlock()
 	e.connections[fd] = conn
+
 	if len(e.connections)%100 == 0 {
 		log.Printf("Total number of connections: %v", len(e.connections))
 	}
@@ -44,8 +60,22 @@ func (e *epoll) Add(conn *websocket.Conn) error {
 
 func (e *epoll) Remove(conn *websocket.Conn) error {
 	fd := websocketFD(conn)
-	err := unix.EpollCtl(e.fd, syscall.EPOLL_CTL_DEL, fd, nil)
-	if err != nil {
+
+	changeEvent := unix.Kevent_t{
+		Ident:  uint64(fd),
+		Filter: syscall.EVFILT_READ,
+		Flags:  syscall.EV_DELETE,
+		Fflags: 0,
+		Data:   0,
+		Udata:  nil,
+	}
+	changeEventRegistered, err := unix.Kevent(
+		e.fd,
+		[]unix.Kevent_t{changeEvent},
+		nil,
+		nil,
+	)
+	if err != nil || changeEventRegistered == -1 {
 		return err
 	}
 	e.lock.Lock()
@@ -58,8 +88,8 @@ func (e *epoll) Remove(conn *websocket.Conn) error {
 }
 
 func (e *epoll) Wait() ([]*websocket.Conn, error) {
-	events := make([]unix.EpollEvent, 100)
-	n, err := unix.EpollWait(e.fd, events, 100)
+	events := make([]unix.Kevent_t, 100)
+	n, err := unix.Kevent(e.fd, nil, events, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +97,7 @@ func (e *epoll) Wait() ([]*websocket.Conn, error) {
 	defer e.lock.RUnlock()
 	var connections []*websocket.Conn
 	for i := 0; i < n; i++ {
-		conn := e.connections[int(events[i].Fd)]
+		conn := e.connections[int(events[i].Ident)]
 		connections = append(connections, conn)
 	}
 	return connections, nil

@@ -1,12 +1,13 @@
 package main
 
 import (
-	"github.com/gobwas/ws"
-	"github.com/gobwas/ws/wsutil"
 	"log"
 	"net/http"
 	_ "net/http/pprof"
 	"syscall"
+
+	"github.com/gobwas/ws"
+	"github.com/gobwas/ws/wsutil"
 )
 
 var epoller *epoll
@@ -60,7 +61,9 @@ func Start() {
 	for {
 		connections, err := epoller.Wait()
 		if err != nil {
-			log.Printf("Failed to epoll wait %v", err)
+			if err != syscall.EINTR {
+				log.Printf("Failed to epoll wait %v", err)
+			}
 			continue
 		}
 		for _, conn := range connections {
@@ -74,7 +77,8 @@ func Start() {
 				conn.Close()
 			} else {
 				// This is commented out since in demo usage, stdout is showing messages sent from > 1M connections at very high rate
-				//log.Printf("msg: %s", string(msg))
+
+				// log.Printf("msg: %s", string(msg))
 			}
 		}
 	}

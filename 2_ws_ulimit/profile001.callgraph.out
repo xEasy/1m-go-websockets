@@ -1,0 +1,130 @@
+positions: instr line
+events: inuse_space(kB)
+
+ob=
+fl=(1) /Users/xeasy/.gvm/gos/go1.18/src/runtime/proc.go
+fn=(1) runtime.allocm
+0x103b35d 1743 512
+
+ob=
+fl=(1)
+fn=(2) runtime.malg
++20234 4034 512
+
+ob=
+fl=(2) /Users/xeasy/.gvm/gos/go1.18/src/net/http/server.go
+fn=(3) net/http.ListenAndServe
++2272157 3221 512
+
+ob=
+fl=(1)
+fn=(4) runtime.main
+-2306010 211 512
+
+ob=
+fl=(1)
+fn=(5) runtime.mstart0
++11329 1376 0
+cfl=(1)
+cfn=(6) runtime.mstart1
+calls=0 +11586 1425
+* * 512
+
+ob=
+fl=(1)
+fn=(6)
++257 1425 0
+cfl=(1)
+cfn=(7) runtime.schedule
+calls=0 +14834 3194
+* * 512
+
+ob=
+fl=(1)
+fn=(8) runtime.newm
++4046 2090 0
+cfl=(1)
+cfn=(1)
+calls=0 +2033 1743
+* * 512
+
+ob=
+fl=(1)
+fn=(9) runtime.startm
++1652 2305 0
+cfl=(1)
+cfn=(8)
+calls=0 * 2090
+* * 512
+
+ob=
+fl=(1)
+fn=(10) runtime.wakep
++1323 2404 0
+cfl=(1)
+cfn=(9)
+calls=0 * 2305
+* * 512
+
+ob=
+fl=(1)
+fn=(11) runtime.resetspinning
++6091 3036 0
+cfl=(1)
+cfn=(10)
+calls=0 * 2404
+* * 512
+
+ob=
+fl=(1)
+fn=(7)
++1465 3194 0
+cfl=(1)
+cfn=(11)
+calls=0 * 3036
+* * 512
+
+ob=
+fl=(1)
+fn=(12) runtime.newproc.func1
++8167 4056 0
+cfl=(1)
+cfn=(13) runtime.newproc1
+calls=0 +8369 4082
+* * 512
+
+ob=
+fl=(1)
+fn=(13)
++202 4082 0
+cfl=(1)
+cfn=(2)
+calls=0 -477 4034
+* * 512
+
+ob=
+fl=(3) /Users/xeasy/.gvm/gos/go1.18/src/runtime/asm_amd64.s
+fn=(14) runtime.mstart
++151030 367 0
+cfl=(1)
+cfn=(5)
+calls=0 -23203 1376
+* * 512
+
+ob=
+fl=(3)
+fn=(15) runtime.systemstack
++260 469 0
+cfl=(1)
+cfn=(12)
+calls=0 -151232 4056
+* * 512
+
+ob=
+fl=(4) /Users/xeasy/MyCode/Golang/1m-go-websockets/2_ws_ulimit/server.go
+fn=(16) main.main.func1
++2120188 57 0
+cfl=(2)
+cfn=(3)
+calls=0 +2120188 3221
+* * 512
